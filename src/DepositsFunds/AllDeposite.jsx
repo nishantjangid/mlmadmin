@@ -37,6 +37,7 @@ function AllDeposite() {
 
   const cols = [
     { field: "id", header: "Id" },
+    { field: "userId", header: "User Id" },
     { field: "amount", header: "Amount" },
     { field: "image", header: "Image" },
     { field: "status", header: "Status" },
@@ -435,6 +436,11 @@ function AllDeposite() {
                                   field="id"
                                   sortable
                                   header="Id"
+                                ></Column>
+                                <Column
+                                  field="userId"
+                                  sortable
+                                  header="User ID"
                                 ></Column>
                                 <Column
                                   field="amount"

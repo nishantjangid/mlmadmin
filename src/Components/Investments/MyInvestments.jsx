@@ -224,15 +224,15 @@ import { AuthContext } from '../../Context/AuthContext';
                                                     <div className="col-md-12 mb-3">
                                                         <label htmlFor="validationCustomUsername" className="text-white">Available Balance</label>
                                                         <div className="input-group">
-                                                            <input type="text" className="form-control input_box" value={userDetail ? userDetail.investmentWallet : 0} id="validationCustomUsername" placeholder="Available Balance" aria-describedby="inputGroupPrepend" required disabled />
+                                                            <input type="text" className="form-control input_box" value={userDetail ? userDetail.mainWallet : 0} id="validationCustomUsername" placeholder="Available Balance" aria-describedby="inputGroupPrepend" required disabled />
                                                         </div>
                                                     </div>
                                                     <div style={{ clear: 'both' }} />
                                                     <p id="msg" style={{ fontSize: 14, fontWeight: 'bold' }} />
                                                     <div className="col-md-12 mb-3 ">
-                                                        <label htmlFor="validationCustomUsername" className="text-white">Wallet Address/Username</label>
+                                                        <label htmlFor="validationCustomUsername" className="text-white">User ID</label>
                                                         <div className="position-relative has-icon-right">
-                                                            <input style={{ background: 'white' }} type="text" id="username" className="form-control input-shadow input_box" placeholder="Enter Your Wallet Address or Username" name="username" required="reqired" autoComplete="none" onChange={(e) => {
+                                                            <input style={{ background: 'white' }} type="text" id="username" className="form-control input-shadow input_box" placeholder="Enter User Id" name="username" required="reqired" autoComplete="none" onChange={(e) => {
                                                                 setMessage("");
                                                                 setWallet(e.target.value);
                                                             }} value={wallet} />

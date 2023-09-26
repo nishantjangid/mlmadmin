@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -27,13 +27,12 @@ import FundSection from './FundSection';
 import { fetchamount } from './fetchamount';
 import DepositFunds from './DepositFunds';
 import ActivateId from './ActivateID';
+import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import Investment from './Investment';
-import { AuthContext } from '../Context/AuthContext';
 const drawerWidth = 240;
 
 function Header(props) {
     const { window } = props;
-    const {userDetail} = useContext(AuthContext);    
     const [mobileOpen, setMobileOpen] = useState(false); // Initialize as false
     const drawerRef = useRef(null);
     const [address, setAddress] = useState(false);
@@ -51,6 +50,15 @@ function Header(props) {
         setMobileOpen(false);
     };
 
+    const handleItemClick = (path) => {
+        if (path) {
+            navigate(path);
+        }
+        // Close the drawer only if the clicked item does not have options
+        if (!path || !path.options) {
+            closeDrawer();
+        }
+    };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -70,7 +78,7 @@ function Header(props) {
     }, [mobileOpen]);
 
     const drawer = (
-        <div style={{ minHeight: "100vh", backgroundColor: '#272727' }}>
+        <div style={{ border: 'none', minHeight: "100vh", backgroundColor: '#272727' }}>
             <Toolbar sx={{ background: 'black', placeContent: 'center' }}>
                 {/* <img
                     src={brand}
@@ -79,7 +87,7 @@ function Header(props) {
                 /> */}
             </Toolbar>
             <Divider />
-            <List sx={{ color: 'white', background: '#161616' }}>
+            <List sx={{ border: 'none', color: 'white', background: '#161616' }}>
                 <ListItem disablePadding sx={{ display: 'block', padding: '5px', borderBottom: '1px solid #2e2a2a' }} >
                     <ListItemButton
                         onClick={() => navigate("dashboard")}  >
@@ -98,7 +106,7 @@ function Header(props) {
                 <ListItem disablePadding sx={{ display: 'block', padding: '5px', borderBottom: '1px solid #2e2a2a' }} >
                     <ListItemButton
 
-                        onClick={() => navigate("ProfilePage")}  >
+                        onClick={() => handleItemClick("ProfilePage")}  >
                         <ListItemIcon
                             sx={{
                                 minWidth: 0,
@@ -113,7 +121,7 @@ function Header(props) {
                 </ListItem>
                 <ListItem disablePadding sx={{ display: 'block', borderBottom: '1px solid #2e2a2a' }} >
 
-                    <DepositFunds />
+                    <DepositFunds/>
 
                 </ListItem>
                 <ListItem disablePadding sx={{ display: 'block', borderBottom: '1px solid #2e2a2a' }} >
@@ -159,6 +167,22 @@ function Header(props) {
                         <ListItemText primary="Transaction" />
                     </ListItemButton>
                 </ListItem>
+                <ListItem disablePadding sx={{ display: 'block', padding: '5px', borderBottom: '1px solid #2e2a2a' }} >
+                    <ListItemButton
+
+                        onClick={() => navigate("Settings")}  >
+                        <ListItemIcon
+                            sx={{
+                                minWidth: 0,
+                                justifyContent: 'center',
+                            }}
+
+                        >
+                            <SettingsSuggestIcon sx={{ color: "#d8af72", marginRight: '10px', fontSize: "30px" }} />
+                        </ListItemIcon>
+                        <ListItemText primary="Settings" />
+                    </ListItemButton>
+                </ListItem>
             </List>
         </div>
     );
@@ -177,10 +201,10 @@ function Header(props) {
         setDialogOpen(false);
     };
 
-   
+
 
     return (
-        <Box ref={drawerRef} sx={{ background: '#272727', display: 'flex' }}>
+        <Box ref={drawerRef} sx={{ border: 'none', background: '#272727', display: 'flex' }}>
             <CssBaseline />
             <AppBar
                 position="fixed"
@@ -191,7 +215,8 @@ function Header(props) {
                     justifyContent: 'space-between',
                     flexDirection: 'row',
                     background: 'black',
-                    borderBottom: '1px solid white',
+                    border: 'none',
+
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
                     ml: { sm: `${drawerWidth}px` },
                 }}
@@ -206,23 +231,23 @@ function Header(props) {
                     >
                         <MenuIcon />
                     </IconButton>
-                    <div className="wallet-info">
+                    {/* <div className="wallet-info">
                         <span style={{ marginLeft: '10px' }}>
                             Main Wallet
                         </span>
                         <div className='items-center' style={{ display: "flex", width: '100px', marginLeft: '10px', color: '#d8af72', padding: '5px', borderRadius: '5px', border: '1px solid #d8af72' }} onClick={handleOpenDialog}>
                             <AccountBalanceWalletIcon sx={{ color: '#d8af72', marginRight: "4px" }} />
-                            <p>{userDetail.mainWallet}</p>
+                            <p>0</p>
 
                         </div>
-                    </div>
+                    </div> */}
                     <div className="wallet-info">
                         <span style={{ marginLeft: '10px' }}>
-                            Investment
+                            Total  Investment
                         </span>
                         <div className='items-center' style={{ display: "flex", width: '100px', marginLeft: '10px', color: '#d8af72', padding: '5px', borderRadius: '5px', border: '1px solid #d8af72' }} onClick={handleOpenDialog}>
                             <AccountBalanceWalletIcon sx={{ color: '#d8af72', marginRight: "4px" }} />
-                            <p>{userDetail.investmentWallet}</p>
+                            <p>100</p>
 
                         </div>
                     </div>
@@ -260,6 +285,7 @@ function Header(props) {
                         keepMounted: true, // Better open performance on mobile.
                     }}
                     sx={{
+                        border: 'none',
 
                         display: { xs: 'block', sm: 'none' },
                         '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
@@ -270,6 +296,7 @@ function Header(props) {
                 <Drawer
                     variant="permanent"
                     sx={{
+                        border: 'none',
                         display: { xs: 'none', sm: 'block' },
                         '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
                     }}

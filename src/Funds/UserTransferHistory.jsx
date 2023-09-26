@@ -10,7 +10,7 @@ import { Button } from "primereact/button";
 import { Tooltip } from "primereact/tooltip";
 
 function UserTransferHistory() {
-  const { userDetail } = useContext(AuthContext);
+  const { userDetail ,getUserDetails} = useContext(AuthContext);
   const { addToast } = useToasts();
   const [activeTab, setActiveTab] = useState("transfer");
   const [fromDate, setFromDate] = useState("");
@@ -123,6 +123,7 @@ function UserTransferHistory() {
       let result = await fundTransferHistory();
       let data = result;
       setTransactions(data.result);
+      getUserDetails();
       setLoad(false);
     } catch (err) {
       setLoad(false);

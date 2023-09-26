@@ -34,6 +34,9 @@ import AdminTransferFunds from './Funds/AdminTransferFunds';
 import RewardIncome from './IncomeReports/RewardIncome';
 import ProtectedRoute from './ProtectedRoute/ProtectedRoute';
 import Header from './Components/Header';
+import Settings from './Components/Settings';
+import Forget from './Components/login/Forget';
+
 
 
 const App = () => {
