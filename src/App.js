@@ -74,9 +74,11 @@ const isAuthenticated = false;
           <Route path='UserTransferHistory' element={<ProtectedRoute > <UserTransferHistory /> </ProtectedRoute >} />
           <Route path='AdminTransferFunds' element={<ProtectedRoute > <AdminTransferFunds /> </ProtectedRoute >} />
           <Route path='ProfilePage' element={<ProtectedRoute > <ProfilePage  /> </ProtectedRoute >} />
+          <Route path='Settings' element={<ProtectedRoute > <Settings  /> </ProtectedRoute >} />
         </Route>      
           <Route exact path='register' element={<Register /> } />
           <Route exact path='login' element={ <Login />} />
+          <Route exact path='Forget' elemen={<Forget />}/>
               
       </Routes>
     </Router>

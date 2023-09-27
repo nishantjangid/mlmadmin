@@ -390,6 +390,68 @@ export const getAllUsers = async () => {
     })     
 }
 
+// get user level data
+export const getLevelData = async () => {    
+    return new Promise(async (resolve,reject)=>{
+        try{
+            let accesstoken = localStorage.getItem('authToken'); 
+            let result = await axios.get(`${BASEURL}/users/level-Income`,{headers: {
+                'x-access-token': `${accesstoken}`,
+                'Content-Type':'application/json'
+              },});
+
+            if(result.status == 200 || result.status == 201){
+                resolve(result.data);
+            }else{
+                reject(result.data);
+            }
+        }catch(err){
+            reject(err);
+        }
+    })      
+}
+
+// setting api
+export const settingUpdate = async (obj) => {
+    return new Promise(async (resolve,reject)=>{
+        try{
+            let accesstoken = localStorage.getItem('authToken'); 
+            let result = await axios.post(`${BASEURL}/users/adminSettings`,obj,{headers: {
+                'x-access-token': `${accesstoken}`,
+                'Content-Type':'application/json'
+              },});
+
+            if(result.status == 200 || result.status == 201){
+                resolve(result.data);
+            }else{
+                reject(result.data);
+            }
+        }catch(err){
+            reject(err);
+        }
+    })     
+}
+
+// fetch setting api
+export const settingDataFetch = async () => {
+    return new Promise(async (resolve,reject)=>{
+        try{
+            let accesstoken = localStorage.getItem('authToken'); 
+            let result = await axios.get(`${BASEURL}/users/fetchSettings`,{headers: {
+                'x-access-token': `${accesstoken}`,
+                'Content-Type':'application/json'
+              },});
+
+            if(result.status == 200 || result.status == 201){
+                resolve(result.data);
+            }else{
+                reject(result.data);
+            }
+        }catch(err){
+            reject(err);
+        }
+    })     
+}
 
 
 
