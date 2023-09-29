@@ -32,7 +32,7 @@ import { AuthContext } from '../../Context/AuthContext';
         const [emailverify, setEmailverify] = useState(false);
 
         // State for input field value and error message
-        const [email, setEmail] = useState("");
+        const [email, setEmail] = useState(userDetail ? userDetail.email : '');
         const [emailError, setEmailError] = useState("");
         const [data, setData] = useState([]);
         const [sending,setSending] = useState(false);
@@ -224,7 +224,7 @@ import { AuthContext } from '../../Context/AuthContext';
                                                     <div className="col-md-12 mb-3">
                                                         <label htmlFor="validationCustomUsername" className="text-white">Available Balance</label>
                                                         <div className="input-group">
-                                                            <input type="text" className="form-control input_box" value={userDetail ? userDetail.mainWallet : 0} id="validationCustomUsername" placeholder="Available Balance" aria-describedby="inputGroupPrepend" required disabled />
+                                                            <input type="text" className="form-control input_box" value={userDetail ? userDetail.investmentWallet : 0} id="validationCustomUsername" placeholder="Available Balance" aria-describedby="inputGroupPrepend" required disabled />
                                                         </div>
                                                     </div>
                                                     <div style={{ clear: 'both' }} />

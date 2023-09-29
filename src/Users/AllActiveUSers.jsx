@@ -99,7 +99,7 @@ function AllUsers() {
       try {
         setLoadings(true);
         setLoading(true);
-        let result = await getAllUsersRecords();
+        let result = await getAllUsersRecords({startDate:"",endDate:"",keywords:""});
         console.log(result, "result");
         setData(result.result);
         setLoading(false);
@@ -228,6 +228,36 @@ function AllUsers() {
         }      
       }
     }
+
+    const handleSearch = async () => {
+      let token = localStorage.getItem("authToken");
+      if (!token) return;
+      try {
+        setLoadings(true);
+        setLoading(true);
+        let result = await getAllUsersRecords({startDate:new Date(startDate),endDate:new Date(endDate),keywords:selectedStatus});
+        console.log(result, "result");
+        setData(result.result);
+        setLoading(false);
+        setLoadings(false);
+      } catch (err) {
+        setLoading(false);
+        setLoadings(false);
+        if (err.code == "ERR_NETWORK") {
+          addToast(err.message, { appearance: "error", autoDismiss: true });
+        } else if (err.code == "ERR_BAD_REQUEST") {
+          addToast(err.response.data.error, {
+            appearance: "error",
+            autoDismiss: true,
+          });
+        } else if (err.response.status) {
+          addToast(err.response.data.error, {
+            appearance: "error",
+            autoDismiss: true,
+          });
+        }
+      }
+    }
   
     useEffect(() => {
       setTimeout(() => {
@@ -280,7 +310,7 @@ function AllUsers() {
                                                 <div className="form-group">
                                                     <label>Pick a end date:</label>
                                                     <div className="input-group date" id="datepicker1" data-target-input="nearest">
-                                                        <input type="date" className="form-control " placeholder="yyyy-mm-dd" name="end_date" onChange={(e) => setEndDate(e.target.value)} value={endDate} />
+                                                        <input type="date" className="form-control " placeholder="yyyy-mm-dd" name="end_date" onChange={(e) => setEndDate(e.target.value)} value={endDate} min={startDate && startDate}/>
                                                     </div>
                                                 </div>
                                             </div>
@@ -301,10 +331,10 @@ function AllUsers() {
                                             <div className="col-md-6 mb-6" style={{ float: 'left', marginTop: 10 }}>
                                                 <label htmlFor="validationCustomUsername">Select id status</label>
                                                 <select className="custom-select selectbox" style={{ backgroundColor: 'rgb(39 39 39)', border: "none", padding: '9px 5px', height: '3rem' }} name="status" value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
-                                                    <option value> ----Select---- </option>
-                                                    <option >active</option>
-                                                    <option >inactive</option>
-                                                    <option >blocked</option>
+                                                    <option value=""> ----Select---- </option>
+                                                    <option value={"true1"}>active</option>
+                                                    <option value={"false"}>inactive</option>
+                                                    <option value={"true2"}>blocked</option>
                                                 </select>
                                             </div>
                                             {/* <div className="col-md-6 mb-6" style={{ float: 'left', marginTop: 10 }}>
@@ -319,7 +349,7 @@ function AllUsers() {
                                             <div className='row' >
                                                 <div className="col-md-12 mb-12">
                                                     <center>
-                                                        <button style={{ color: 'black', backgroundColor: 'rgb(195 161 119)' }} className="btn btn-primary" >Search Now</button>
+                                                        <button style={{ color: 'black', backgroundColor: 'rgb(195 161 119)' }} className="btn btn-primary" type='button' onClick={handleSearch}>Search Now</button>
                                                         <button className="btn btn-info" style={{ marginLeft: '20px', background: 'black', color: '#d8af72', border: '1px solid #d8af72' }} type="button" onClick={handleReset}>Reset <span><RotateLeftIcon /></span> </button>
 
                                                     </center>

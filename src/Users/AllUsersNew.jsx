@@ -262,6 +262,7 @@ const {addToast} = useToasts();
                               className="form-control "
                               placeholder="yyyy-mm-dd"
                               name="end_date"
+                              min={startDate && startDate}
                               onChange={(e) => setEndDate(e.target.value)}
                               value={endDate}
                             />
@@ -281,7 +282,7 @@ const {addToast} = useToasts();
                           <input
                             type="text"
                             className="form-control"
-                            placeholder="Name, User ID , Sponsor ID , Sponsor Name"
+                            placeholder="Name, User ID"
                             name="userid"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}

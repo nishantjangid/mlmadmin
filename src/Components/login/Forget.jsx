@@ -3,6 +3,8 @@ import React, { useEffect, useState, useRef } from 'react';
 // import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import DashBoard from '../DashBoard';
+import { useToasts } from 'react-toast-notifications';
+import { forgotPassword } from '../../ApiHelpers';
 
 function Forget() {
     const navigate = useNavigate();
@@ -16,27 +18,34 @@ function Forget() {
     const newPassRef = useRef(null);
     const conPassRef = useRef(null);
 
-    const handleEmailChange = (event) => {
-        setEmail(event.target.value);
-    };
-
-    const handleOtpChange = (event) => {
-        setOtp(event.target.value);
-    };
-
-    const handlePasswordChange = (event) => {
-        setMessage('');
-        setPassword(event.target.value);
-    };
-    const handlePassword1Change = (event) => {
-        setMessage('');
-        setPassword1(event.target.value);
-    };
-
-
-
-
-
+    const { addToast } = useToasts();    
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        let email = e.target.email.value;        
+        var validRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
+        if(!validRegex.test(email) || !email){
+            addToast("Please provide a valid email", {appearance: "error",autoDismiss: true});
+            return;
+        }
+        try{
+            setLoading(true);
+            let result = await forgotPassword({email});                                        
+            setEmail('');
+            addToast(result.message, {appearance: "success",autoDismiss: true});         
+            setLoading(false);
+        }catch(err){  
+            setLoading(false);
+            if(err.code == "ERR_NETWORK"){
+                addToast(err.message, {appearance: "error",autoDismiss: true});
+            }   
+            else if(err.code == "ERR_BAD_REQUEST"){
+                addToast(err.response.data.error, {appearance: "error",autoDismiss: true});
+            }
+            else if(err.response.status){
+                addToast(err.response.data, {appearance: "error",autoDismiss: true});
+            }
+        }
+    }
    
 
     useEffect(() => {
@@ -61,6 +70,7 @@ function Forget() {
                                 <div className={`fade-in ${loading ? '' : 'active'}`}>
                                     <p style={{ color: 'white', textAlign: 'center' }}>{message}</p>
                                     {step === 1 && (
+                                    <form method='post' onSubmit={handleSubmit}>
                                         <div className="loginAction wow flipInX" style={{ visibility: 'visible', animationName: 'flipInX' }}>
                                             {/* Step 1: Enter Email and Send OTP */}
                                             <input
@@ -68,13 +78,14 @@ function Forget() {
                                                 name="email"
                                                 placeholder="Enter Email"
                                                 className="form-control"
-                                                required="username"
-                                                value={email}
-                                                onChange={handleEmailChange}
+                                                required="username"        
+                                                value={email}                                                                                        
+                                                onChange={(e)=>setEmail(e.target.value)}
                                                 style={{ borderRadius: 15, paddingLeft: 15, fontWeight: 'bold' }}
                                             />
-                                            <button style={{ padding: '10px', width: '100%', borderRadius: '5px', marginTop: '0.5em', backgroundColor: 'rgb(195 161 119)', border: 'none' }}>Send OTP</button>
+                                            {loading ? <button style={{ padding: '10px', width: '100%', borderRadius: '5px', marginTop: '0.5em', backgroundColor: 'rgb(195 161 119)', border: 'none' }}>Processing...</button> : <button type='submit' style={{ padding: '10px', width: '100%', borderRadius: '5px', marginTop: '0.5em', backgroundColor: 'rgb(195 161 119)', border: 'none' }}>Forgot Password</button>}
                                         </div>
+                                    </form>
                                     )}
                                     {step === 2 && (
                                         <div className="step2">
@@ -85,8 +96,7 @@ function Forget() {
                                                 placeholder="Enter OTP"
                                                 className="form-control"
                                                 required="otp"
-                                                value={otp}
-                                                onChange={handleOtpChange}
+                                                
                                                 style={{ borderRadius: 15, paddingLeft: 15, fontWeight: 'bold' }}
                                             />
                                             <button style={{ padding: '10px', width: '100%', borderRadius: '5px', marginTop: '0.5em', backgroundColor: 'rgb(195 161 119)', border: 'none' }} >Verify OTP</button>
@@ -102,10 +112,8 @@ function Forget() {
                                                         className="input_box"
                                                         type="password"
                                                         name="new_pass"
-                                                        ref={newPassRef}
                                                         placeholder="New password"
                                                         required
-                                                        onChange={handlePasswordChange}
                                                     />
                                                 </div>
                                                 <div className="input_box_div">
@@ -114,10 +122,9 @@ function Forget() {
                                                         className="input_box"
                                                         type="password"
                                                         name="con_pass"
-                                                        ref={conPassRef}
+                                                        
                                                         placeholder="Confirm password"
                                                         required
-                                                        onChange={handlePassword1Change}
                                                     />
                                                 </div>
                                                 <div className="dash_second_col_third" >

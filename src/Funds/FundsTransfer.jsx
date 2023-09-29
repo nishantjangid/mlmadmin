@@ -214,12 +214,12 @@ function FundsTransfer() {
                                         <form role="form"  id="mypassform" method="post" encType="application/json">
                                             <input type="hidden" name="_token" defaultValue="1nP1Eivu6Q7kjHazoDkNoRSz830zT2SDmcSnZmAy" />
                                             <div className="form-row">
-                                                <div className="col-md-12 mb-3">
+                                                {/* <div className="col-md-12 mb-3">
                                                     <label htmlFor="validationCustomUsername" className="text-white">Available Balance</label>
                                                     <div className="input-group">
                                                         <input type="text" className="form-control input_box" value={userDetail?.mainWallet} id="validationCustomUsername" placeholder="Available Balance" aria-describedby="inputGroupPrepend" required disabled />
                                                     </div>
-                                                </div>
+                                                </div> */}
                                                 <div style={{ clear: 'both' }} />
                                                 <p id="msg" style={{ fontSize: 14, fontWeight: 'bold' }} />
                                                 <div className="col-md-12 mb-3">

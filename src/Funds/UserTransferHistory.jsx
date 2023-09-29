@@ -120,21 +120,26 @@ function UserTransferHistory() {
     setLoad(true);
     try {
       setTransactions([]);
-      let result = await fundTransferHistory();
+      let result = await fundTransferHistory({startDate:"",endDate:"",keywords:""});
       let data = result;
       setTransactions(data.result);
       getUserDetails();
       setLoad(false);
     } catch (err) {
       setLoad(false);
-      if (err.code == "ERR_NETWORK" || err.code == "ERR_BAD_REQUEST") {
+      if (err.code == "ERR_NETWORK" ) {
         addToast(err.message, { appearance: "error", autoDismiss: true });
       } else if (err.code == "ERR_BAD_REQUEST") {
         addToast(err.response.data.error, {
           appearance: "error",
           autoDismiss: true,
         });
-      } else if (err.response.status) {
+      }else if( err.code == "ERR_BAD_REQUEST"){
+        addToast(err.response.data.error, {
+          appearance: "error",
+          autoDismiss: true,
+        });
+      }  else if (err.response.status) {
         addToast(err.response.data.error, {
           appearance: "error",
           autoDismiss: true,
@@ -155,18 +160,43 @@ function UserTransferHistory() {
     setToDate(event.target.value);
   };
 
-  const handleSearchClick = () => {
-    const dataToFilter =
-      activeTab === "transfer" ? transferHistoryData : requestHistoryData;
-
-    const filtered = filterData(dataToFilter);
-    setFilteredData(filtered);
+  const handleSearchClick = async () => {
+    let token = localStorage.getItem("authToken");
+    if (!token) return;
+    setLoad(true);
+    try {
+      setTransactions([]);
+      let result = await fundTransferHistory({startDate:new Date(fromDate),endDate:new Date(toDate),keywords:searchQuery});
+      let data = result;
+      setTransactions(data.result);
+      getUserDetails();
+      setLoad(false);
+    } catch (err) {
+      setLoad(false);
+      if (err.code == "ERR_NETWORK") {
+        addToast(err.message, { appearance: "error", autoDismiss: true });
+      } else if (err.code == "ERR_BAD_REQUEST") {
+        addToast(err.response.data.error, {
+          appearance: "error",
+          autoDismiss: true,
+        });
+      }else if( err.code == "ERR_BAD_REQUEST"){
+        addToast(err.response.data.error, {
+          appearance: "error",
+          autoDismiss: true,
+        });
+      } else if (err.response.status) {
+        addToast(err.response.data, {
+          appearance: "error",
+          autoDismiss: true,
+        });
+      }
+    }    
   };
   const handleReset = () => {
     setFromDate("");
     setToDate("");
-    setSearchQuery("");
-    setFilteredData([]);
+    setSearchQuery("");    
   };
   const filterData = (data) => {
     const startDate = new Date(fromDate);
@@ -295,6 +325,7 @@ function UserTransferHistory() {
                           className="form-control "
                           placeholder="yyyy-mm-dd"
                           name="end_date"
+                          min={fromDate && fromDate}
                           onChange={handleToDateChange}
                           value={toDate}
                         />

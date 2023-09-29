@@ -213,9 +213,29 @@ function AllDeposite() {
         return <Calendar value={options.value} onChange={(e) => options.filterCallback(e.value, options.index)} dateFormat="mm/dd/yy" placeholder="mm/dd/yyyy" mask="99/99/9999" />;
     };
 
-  const handlegetdata = async () => {
+    const handleSearch = async () => {
+      try {
+        let result = await getdepositedata({startDate:new Date(startDate),endDate:new Date(endDate),status:selectedStatus});
+        console.log(result.result, "result");
+        setData(result.result);
+      } catch (err) {
+        console.log(err, "err");
+        if (err.code == "ERR_NETWORK") {
+          addToast(err.message, { appearance: "error", autoDismiss: true });
+        } else if (err.code == "ERR_BAD_REQUEST") {
+          addToast(err.response.data.error, {
+            appearance: "error",
+            autoDismiss: true,
+          });
+        } else if (err.response.status) {
+          addToast(err.response.data, { appearance: "error", autoDismiss: true });
+        }
+      }
+    };
+
+    const handlegetdata = async () => {
     try {
-      let result = await getdepositedata();
+      let result = await getdepositedata({startDate:"",endDate:"",status:""});
       console.log(result.result, "result");
       setData(result.result);
     } catch (err) {
@@ -234,6 +254,9 @@ function AllDeposite() {
   };
 
   const handleReset = (e) => {
+    setStartDate("");
+    setEndDate("");
+    setSelectedStatus("");
     handlegetdata();
   }
 
@@ -321,6 +344,7 @@ function AllDeposite() {
                               className="form-control "
                               placeholder="yyyy-mm-dd"
                               name="end_date"
+                              min={startDate && startDate}
                               onChange={(e) => setEndDate(e.target.value)}
                               value={endDate}
                             />
@@ -360,10 +384,10 @@ function AllDeposite() {
                           value={selectedStatus}
                           onChange={(e) => setSelectedStatus(e.target.value)}
                         >
-                          <option value> ----Select---- </option>
-                          <option> Pending </option>
-                          <option>Reject</option>
-                          <option>Approve</option>
+                          <option value=""> ----Select---- </option>
+                          <option value="0"> Pending </option>
+                          <option value="1">Approve</option>
+                          <option value="2">Reject</option>
                         </select>
                       </div>
 
@@ -378,6 +402,8 @@ function AllDeposite() {
                                 backgroundColor: "rgb(195 161 119)",
                               }}
                               className="btn btn-primary"
+                              type="button"
+                              onClick={handleSearch}
                             >
                               Search Now
                             </button>

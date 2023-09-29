@@ -13,8 +13,8 @@ function InvestmentHistory() {
   const { addToast } = useToasts();
   const { userDetail } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("transfer");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredData, setFilteredData] = useState([]);
 
@@ -127,13 +127,44 @@ function InvestmentHistory() {
     const formattedTime = createdAt.toLocaleTimeString();
     return formattedDate + " " + formattedTime;
   };
+
+  const handleSearch = async () => {
+    let token = localStorage.getItem("authToken");
+    if (!token) return;
+    try {
+      setData([]);
+      setLoadings(true);
+      let result = await investmentHistory({startDate:new Date(startDate),endDate:new Date(endDate),keywords:searchQuery});
+      setLoadings(false);
+      let data = result;
+      console.log(data.result, data.result);
+      setData(data.result);
+    } catch (err) {
+      setLoadings(false);
+      if (err.code == "ERR_NETWORK") {
+        addToast(err.message, { appearance: "error", autoDismiss: true });
+      } else if (err.code == "ERR_BAD_REQUEST") {
+        addToast(err.response.data.error, {
+          appearance: "error",
+          autoDismiss: true,
+        });
+      } else if (err.response.status) {
+        addToast(err.response.data.error, {
+          appearance: "error",
+          autoDismiss: true,
+        });
+      }
+    }
+  }
+
+
   const investmenthistory = async () => {
     let token = localStorage.getItem("authToken");
     if (!token) return;
     try {
       setData([]);
       setLoadings(true);
-      let result = await investmentHistory();
+      let result = await investmentHistory({startDate:'',endDate:'',keywords:''});
       setLoadings(false);
       let data = result;
       console.log(data.result, data.result);
@@ -205,6 +236,8 @@ function InvestmentHistory() {
                           className="form-control t"
                           placeholder="yyyy-mm-dd"
                           name="start_date"
+                          value={startDate}
+                          onChange={(e)=>setStartDate(e.target.value)}
                         />
                       </div>
                     </div>
@@ -225,6 +258,9 @@ function InvestmentHistory() {
                           className="form-control "
                           placeholder="yyyy-mm-dd"
                           name="end_date"
+                          min={startDate && startDate}
+                          value={endDate}
+                          onChange={(e)=>setEndDate(e.target.value)}
                         />
                       </div>
                     </div>
@@ -242,8 +278,10 @@ function InvestmentHistory() {
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Name, User ID , Mobile No."
+                        placeholder="Name, User ID"
                         name="userid"
+                        value={searchQuery}
+                        onChange={(e)=>setSearchQuery(e.target.value)}
                       />
                     </div>
                   </div>
@@ -275,7 +313,8 @@ function InvestmentHistory() {
                             backgroundColor: "rgb(195 161 119)",
                           }}
                           className="btn btn-primary"
-                          value="Search"
+                          value="Search"                          
+                          onClick={handleSearch}
                         >
                           Search Now
                         </button>

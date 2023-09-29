@@ -17,6 +17,7 @@ function WalletHistory() {
   const {getUserDetails} = useContext(AuthContext);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [searchQuery,setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadings, setLoadings] = useState(true);
@@ -82,13 +83,42 @@ function WalletHistory() {
     });
   };
 
+  const handleSearch = async () => {
+    let token = localStorage.getItem("authToken");
+    if (!token) return;
+    try {
+      setLoadings(true);
+      setLoading(true);
+      let result = await getAllWithdrawRequst({startDate:new Date(startDate),endDate:new Date(endDate),keywords:searchQuery});
+      setData(result.result);
+      setLoading(false);
+      setLoadings(false);
+    } catch (err) {
+      setLoading(false);
+      setLoadings(false);
+      if (err.code == "ERR_NETWORK") {
+        addToast(err.message, { appearance: "error", autoDismiss: true });
+      } else if (err.code == "ERR_BAD_REQUEST") {
+        addToast(err.response.data.error, {
+          appearance: "error",
+          autoDismiss: true,
+        });
+      } else if (err.response.status) {
+        addToast(err.response.data.error, {
+          appearance: "error",
+          autoDismiss: true,
+        });
+      }
+    }
+  }
+
   const getAllRequests = async () => {
     let token = localStorage.getItem("authToken");
     if (!token) return;
     try {
       setLoadings(true);
       setLoading(true);
-      let result = await getAllWithdrawRequst();
+      let result = await getAllWithdrawRequst({startDate:"",endDate:"",keywords:""});
       setData(result.result);
       setLoading(false);
       setLoadings(false);
@@ -330,6 +360,8 @@ function WalletHistory() {
                               className="form-control"
                               placeholder="Name,User ID"
                               name="username"
+                              value={searchQuery}
+                              onChange={(e)=>setSearchQuery(e.target.value)}
                             />
                           </div>
                         </div>
@@ -349,6 +381,8 @@ function WalletHistory() {
                                 backgroundColor: "rgb(195 161 119)",
                               }}
                               className="btn btn-primary"
+                              type="button"
+                              onClick={handleSearch}
                             >
                               Search Now
                             </button>
