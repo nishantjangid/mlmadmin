@@ -50,7 +50,9 @@ function Settings() {
         try{
             let result = await settingDataFetch();
             console.log(result);
-            setSettingData(result.result[0]);
+            if(result.result.length){
+                setSettingData(result.result[0]);
+            }
         }catch(err){
             if(err.code == "ERR_NETWORK"){
                 addToast(err.message, {appearance: "error",autoDismiss: true});

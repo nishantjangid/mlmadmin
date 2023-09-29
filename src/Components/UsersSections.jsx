@@ -35,6 +35,16 @@ export default function UsersSection() {
             </ListItemButton>
             <Collapse in={open} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
+                    <ListItemButton onClick={() => navigate('AllMemberUsers')} sx={{ pl: 4 }}>
+                        <ListItemIcon>
+                            <PeopleIcon sx={{ marginLeft: '-11px', color: 'white' }} />
+                        </ListItemIcon>
+                        <ListItemText primary="All Member Users" />
+                    </ListItemButton>
+                </List>
+            </Collapse>
+            <Collapse in={open} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
                     <ListItemButton onClick={() => navigate('AllUsers')} sx={{ pl: 4 }}>
                         <ListItemIcon>
                             <PeopleIcon sx={{ marginLeft: '-11px', color: 'white' }} />
@@ -43,17 +53,7 @@ export default function UsersSection() {
                     </ListItemButton>
                 </List>
             </Collapse>
-            <Collapse in={open} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                    <ListItemButton onClick={() => navigate('AllActiveUSers')} sx={{ pl: 4 }}>
-                        <ListItemIcon>
-                            <PeopleIcon sx={{ marginLeft: '-11px', color: 'white' }} />
-                        </ListItemIcon>
-                        <ListItemText primary="Active Users" />
-                    </ListItemButton>
-                </List>
-            </Collapse>
-            <Collapse in={open} timeout="auto" unmountOnExit>
+            {/* <Collapse in={open} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
                     <ListItemButton onClick={() => navigate('AllInActiveUsers')} sx={{ pl: 4 }}>
                         <ListItemIcon>
@@ -72,7 +72,7 @@ export default function UsersSection() {
                         <ListItemText primary=" Block Users" />
                     </ListItemButton>
                 </List>
-            </Collapse>
+            </Collapse> */}
 
             <Collapse in={open} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>

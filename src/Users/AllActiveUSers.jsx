@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import BorderColorIcon from '@mui/icons-material/BorderColor';
 import RotateLeftIcon from '@mui/icons-material/RotateLeft';
 import { token, baseURL } from '../token';
@@ -9,124 +9,236 @@ import "../StyleFolder/style.css"
 
 import CircularProgress from '@mui/material/CircularProgress';
 
-import {
-    IconButton,
-    Tooltip,
-} from '@material-tailwind/react';
-import { useNavigate } from 'react-router-dom';
+import { useToasts } from 'react-toast-notifications';
+import { Column } from 'primereact/column';
+import { DataTable } from 'primereact/datatable';
+import { Tooltip } from 'primereact/tooltip';
+import { Button } from 'primereact/button';
+import { blockUser, getAllUsersRecords } from '../ApiHelpers';
 
 
 function AllUsers() {
     const [fromDate, setFromDate] = useState('');
-    const [toDate, setToDate] = useState('');
-    const [searchUserInput, setSearchUserInput] = useState('');
+    const [toDate, setToDate] = useState('');    
     const [iconRotation, setIconRotation] = useState(0);
-    const [allusers, setAllusers] = useState([]);
+    
     const [tableData, setTableData] = useState([]);
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
-    const [searchQuery, setSearchQuery] = useState("");
+    const {addToast} = useToasts();
     const [selectedStatus, setSelectedStatus] = useState("");
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10); // Set the initial rowsPerPage to 5
-
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(false); // Initially, set loading to true
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 1)); // Parse the value to an integer
-        setPage(0); // Reset the page to the first page when changing rowsPerPage
-    };
-    const handleSearch = (e) => {
-        e.preventDefault();
-        const filteredData = tableData?.filter((item) => {
-            // console.log("date", item.data.createdAt);
-            const itemDate = new Date(item?.data?.createdAt);
-            console.log("date", itemDate);
-            const startDateObj = startDate ? new Date(startDate) : null;
-            const endDateObj = endDate ? new Date(endDate) : null;
-
-            // Check the date range
-            if (startDateObj && endDateObj) {
-                // Format the item date in the same format as your input (MM/DD/YYYY)
-                const formattedItemDate = `${itemDate.getMonth() + 1}/${itemDate.getDate()}/${itemDate.getFullYear()}`;
-                const start = `${startDateObj.getMonth() + 1}/${startDateObj.getDate()}/${startDateObj.getFullYear()}`;
-                const end = `${endDateObj.getMonth() + 1}/${endDateObj.getDate()}/${endDateObj.getFullYear()}`;
-                // console.log(start);
-                // console.log(formattedItemDate, start, end);
-                // console.log(formattedItemDate >= start);
-                if (
-                    formattedItemDate < start ||
-                    formattedItemDate > end
-                ) {
-                    return false;
-                }
-            }
-            if (startDateObj) {
-                const formattedItemDate = `${itemDate.getMonth() + 1}/${itemDate.getDate()}/${itemDate.getFullYear()}`;
-                const start = `${startDateObj.getMonth() + 1}/${startDateObj.getDate()}/${startDateObj.getFullYear()}`;
-                console.log(start);
-                if (
-                    formattedItemDate < start
-                ) {
-                    return false;
-                }
-            }
-            if (endDateObj) {
-                const formattedItemDate = `${itemDate.getMonth() + 1}/${itemDate.getDate()}/${itemDate.getFullYear()}`;
-                const end = `${endDateObj.getMonth() + 1}/${endDateObj.getDate()}/${endDateObj.getFullYear()}`;
-                if (
-                    formattedItemDate > end
-                ) {
-                    return false;
-                }
-            }
-
-            // Check the user name
-            if (searchQuery && !item?.data?.username?.toLowerCase().includes(searchQuery.toLowerCase())) {
-                return false;
-            }
-            console.log(selectedStatus, item?.data?.status);
-            if (selectedStatus !== "" && item?.data?.status !== selectedStatus) {
-                return false;
-            }
-            return true;
-        });
-
-        setTableData(filteredData);
-        console.log(tableData);
-        console.log(filteredData);
-    };
-
-    const handleReset = () => {
-        setStartDate('');
-        setEndDate('');
-        setSearchQuery('');
-        setSelectedStatus('')
-        setTableData(tableData);
-        setIconRotation(iconRotation + 360); // Rotate the icon by 360 degrees
-        getallusers()
-    };
-
+    const [loading, setLoading] = useState(true);
+    const [loadings, setLoadings] = useState(true);
+    const [data, setData] = useState([]);
+    const dt = useRef(null);
   
-
-    const getallusers = async () => {
-       
+    const exportCSV = (selectionOnly) => {
+      dt.current.exportCSV({ selectionOnly });
+    };
+  
+    const cols = [
+        { field: "id", header: "SR.No" },
+      { field: "userId", header: "User ID" },
+      { field: "username", header: "Username" },
+      { field: "mainWallet", header: "Main Wallet" },
+      { field: "investmentWallet", header: "Investment Wallet" },
+      { field: "isInvested", header: "Investment Status" },
+      { field: "block", header: "Block" },
+      { field: "datetime", header: "Datetime" },
+    ];
+  
+    const exportPdf = () => {
+      import("jspdf").then((jsPDF) => {
+        import("jspdf-autotable").then(() => {
+          const doc = new jsPDF.default(0, 0);
+          const exportColumns = cols.map((col) => ({
+            title: col.header,
+            dataKey: col.field,
+          }));
+          console.log(exportColumns);
+          doc.autoTable(exportColumns, data);
+          doc.save("fundTransfers.pdf");
+        });
+      });
+    };
+  
+    const exportExcel = () => {
+      import("xlsx").then((xlsx) => {
+        const worksheet = xlsx.utils.json_to_sheet(data);
+        const workbook = { Sheets: { data: worksheet }, SheetNames: ["data"] };
+        const excelBuffer = xlsx.write(workbook, {
+          bookType: "xlsx",
+          type: "array",
+        });
+  
+        saveAsExcelFile(excelBuffer, "fundTransfer");
+      });
+    };
+  
+    const saveAsExcelFile = (buffer, fileName) => {
+      import("file-saver").then((module) => {
+        if (module && module.default) {
+          let EXCEL_TYPE =
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8";
+          let EXCEL_EXTENSION = ".xlsx";
+          const data = new Blob([buffer], {
+            type: EXCEL_TYPE,
+          });
+  
+          module.default.saveAs(
+            data,
+            fileName + "_export_" + new Date().getTime() + EXCEL_EXTENSION
+          );
+        }
+      });
+    };
+  
+    const getAllUsersData = async () => {
+      let token = localStorage.getItem("authToken");
+      if (!token) return;
+      try {
+        setLoadings(true);
+        setLoading(true);
+        let result = await getAllUsersRecords();
+        console.log(result, "result");
+        setData(result.result);
+        setLoading(false);
+        setLoadings(false);
+      } catch (err) {
+        setLoading(false);
+        setLoadings(false);
+        if (err.code == "ERR_NETWORK") {
+          addToast(err.message, { appearance: "error", autoDismiss: true });
+        } else if (err.code == "ERR_BAD_REQUEST") {
+          addToast(err.response.data.error, {
+            appearance: "error",
+            autoDismiss: true,
+          });
+        } else if (err.response.status) {
+          addToast(err.response.data.error, {
+            appearance: "error",
+            autoDismiss: true,
+          });
+        }
+      }
+    };
+  
+    const header = (
+      <div className="flex align-items-center justify-content-end gap-2">
+        <Button
+          type="button"
+          value="CSV"
+          icon="pi pi-file"
+          rounded
+          onClick={() => exportCSV(false)}
+          data-pr-tooltip="CSV"
+        >
+          CSV
+        </Button>
+        <Button
+          type="button"
+          icon="pi pi-file-excel"
+          severity="success"
+          value="XLS"
+          rounded
+          onClick={exportExcel}
+          data-pr-tooltip="XLS"
+        >
+          XLS
+        </Button>
+        <Button
+          type="button"
+          icon="pi pi-file-pdf"
+          severity="warning"
+          value="PDF"
+          rounded
+          onClick={exportPdf}
+          data-pr-tooltip="PDF"
+        >
+          PDF
+        </Button>
+      </div>
+    );
+    const footer = `In total there are ${data ? data.length : 0} History.`;
+    const paginatorLeft = <Button type="button" icon="pi pi-refresh" text />;
+    const paginatorRight = <Button type="button" icon="pi pi-download" text />;        
+   
+     const AcceptButtonTemplate = (row) => <Button onClick={() => handleBlock(row.userId)} style={{background:"red",color:'#fff',border:'none'}}>Block</Button>
+     const RejectButtonTemplate = (row) => <Button onClick={() => handleUnblock(row.userId)} style={{background:"green",color:'#fff',border:'none'}}>Unblock</Button>
+   const blockedTemplate =  (row) => (
+    <span>
+      {row?.block == true && (
+        <p style={{  color:"red",fontWeight: "bold" }}>Blocked</p>
+      )}
+      {row?.block == false && (
+        <p style={{ color:"green",fontWeight: "bold" }}>Unblock</p>
+      )}
+    </span>
+  ); 
+    const investedTemplate = (row) => (
+      <span>
+        {row?.isInvested == true && (
+          <p style={{  fontWeight: "bold" }}>Active</p>
+        )}
+        {row?.isInvested == false && (
+          <p style={{ fontWeight: "bold" }}>Inactive</p>
+        )}
+      </span>
+    );
+  
+    const handleBlock = async (userId) => {
+      try{
+        setLoadings(true);
+        let result = await blockUser({userId,isBlock:1});
+        setLoadings(false);
+        addToast(result.message, {appearance: "success",autoDismiss: true});
+        getAllUsersData();
+        
+      }catch(err){      
+        setLoadings(false);
+        if(err.code == "ERR_NETWORK"){
+            addToast(err.message, {appearance: "error",autoDismiss: true});
+        }   
+        else if(err.code == "ERR_BAD_REQUEST"){
+            addToast(err.response.data.error, {appearance: "error",autoDismiss: true});
+        }
+        else if(err.response.status){
+            addToast(err.response.data, {appearance: "error",autoDismiss: true});
+        }      
+      }
     }
-
+  
+    const handleUnblock = async (userId) => {
+      try{
+        setLoadings(true);
+        let result = await blockUser({userId,isBlock:0});
+        setLoadings(false);
+        addToast(result.message, {appearance: "success",autoDismiss: true});
+        getAllUsersData();        
+      }catch(err){      
+        setLoadings(false);
+        if(err.code == "ERR_NETWORK"){
+            addToast(err.message, {appearance: "error",autoDismiss: true});
+        }   
+        else if(err.code == "ERR_BAD_REQUEST"){
+            addToast(err.response.data.error, {appearance: "error",autoDismiss: true});
+        }
+        else if(err.response.status){
+            addToast(err.response.data, {appearance: "error",autoDismiss: true});
+        }      
+      }
+    }
+  
     useEffect(() => {
-        getallusers();
-    }, [])
-
-    const handlerenew = async (id) => {
-        // navigate(`${id}`)
-        navigate(`/AllUsers/${id}`)
-    }
-
+      setTimeout(() => {
+        setLoadings(false);
+      }, 1500); // Change the delay as needed
+      getAllUsersData();
+    }, []);
+  
+    const handleReset = () => {
+        getAllUsersData();
+    };
  
     return (
         <>
@@ -207,7 +319,7 @@ function AllUsers() {
                                             <div className='row' >
                                                 <div className="col-md-12 mb-12">
                                                     <center>
-                                                        <button style={{ color: 'black', backgroundColor: 'rgb(195 161 119)' }} className="btn btn-primary" onClick={(e) => handleSearch(e)} >Search Now</button>
+                                                        <button style={{ color: 'black', backgroundColor: 'rgb(195 161 119)' }} className="btn btn-primary" >Search Now</button>
                                                         <button className="btn btn-info" style={{ marginLeft: '20px', background: 'black', color: '#d8af72', border: '1px solid #d8af72' }} type="button" onClick={handleReset}>Reset <span><RotateLeftIcon /></span> </button>
 
                                                     </center>
@@ -235,91 +347,113 @@ function AllUsers() {
                                         </form>
                                         <div className="single-table">
                                             <div className="table-responsive">
-                                                {loading ? (<>
-                                                    <div className="loader-container">
-                                                        <CircularProgress sx={{ color: 'orange' }} />
-                                                    </div>
-                                                </>) : (<>
-                                                    <table className="table text-center">
-                                                        <thead className="text-capitalize">
-                                                            <tr>
-                                                                <th>SR.No.</th>
-
-                                                                <th>User Name</th>
-                                                                <th>User ID</th>
-                                                                <th>Mobile Number</th>
-                                                                <th>Email ID</th>
-                                                                <th>Direct Member</th>
-                                                                <th>Total Member</th>
-                                                                <th>sponsor ID </th>
-                                                                <th>Sponsor Name</th>
-                                                                <th> Joined Date</th>
-                                                                <th>Time</th>
-                                                               
-                                                                <th>Block/UnBlock</th>
-                                                                {/* <th>Action</th> */}
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {tableData.length === 0 ? (
-                                                                <tr>
-                                                                    <td colSpan="12" style={{ color: 'black', textAlign: 'center' }}>
-                                                                        No results found
-                                                                    </td>
-                                                                </tr>
-                                                            ) :
-                                                                tableData?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => {
-                                                                    console.log("time", row?.data?.createdAt);
-                                                                    const createdAt = new Date(row?.data?.createdAt);
-                                                                    console.log("created", createdAt);
-                                                                    const formattedDate = createdAt.toLocaleDateString();
-                                                                    const formattedTime = createdAt.toLocaleTimeString();
-                                                                    return (
-                                                                        <tr key={index}>
-                                                                            <td>{index + 1}</td>
-                                                                            <td style={{ cursor: "pointer" }} onClick={() => handlerenew(row?.data?.id)}>{row?.data?.name}</td>
-                                                                            <td>{row?.data?.username}</td>
-                                                                            <td>{row?.data?.hashcode}</td>
-                                                                            <td>{row?.data?.email}</td>
-                                                                            <td>{row?.data?.phonenumber}</td>
-                                                                            <td>{formattedDate}</td>
-                                                                            <td>{formattedTime}</td>
-                                                                            <td>{row?.data?.type}</td>
-                                                                           
-                                                                            <td>{row?.metadata?.totalUsers}</td>
-                                                                            <td>{row?.metadata?.sponsorId}</td>
-                                                                            <td>{row?.metadata?.activeUsers}</td>
-                                                                            {/* ... render other fields */}
-                                                                            {/* <td>
-                                                                                    {row?.data?.status === "blocked" ?
-                                                                                        <Tooltip content="Unblock User">
-                                                                                            <IconButton
-                                                                                                variant="text"
-                                                                                                color="blue-gray"
-                                                                                                onClick={() => handleBlockUser(row?.data?.id, "false")} // Define your unblock user handler
-                                                                                            >
-                                                                                                <LockOpenIcon className="h-5 w-5" />
-                                                                                            </IconButton>
-                                                                                        </Tooltip>
-                                                                                        :
-                                                                                        <Tooltip content="Block User">
-                                                                                            <IconButton
-                                                                                                variant="text"
-                                                                                                color="blue-gray"
-                                                                                                onClick={() => handleBlockUser(row?.data?.id, "true")}
-                                                                                            >
-                                                                                                <BlockIcon className="h-5 w-5" />
-                                                                                            </IconButton>
-                                                                                        </Tooltip>
-                                                                                    }
-                                                                                </td> */}
-                                                                        </tr>
-                                                                    )
-                                                                })
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                </>)}
+                                            {loadings ? (
+                            <>
+                              <div className="loader-container">
+                                <CircularProgress sx={{ color: "orange" }} />
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <Tooltip
+                                target=".export-buttons>button"
+                                position="bottom"
+                              />
+                              {data.length > 0 ? (
+                                <DataTable
+                              
+                                  ref={dt}
+                                  paginator
+                                  rows={5}
+                                  rowsPerPageOptions={[5, 10, 25, 50]}
+                                  tableStyle={{ minWidth: "50rem" }}
+                                  paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                                  currentPageReportTemplate="{first} to {last} of {totalRecords}"
+                                  paginatorLeft={paginatorLeft}
+                                  paginatorRight={paginatorRight}
+                                  value={data}
+                                  header={header}
+                                  footer={footer}
+                                >
+                                  <Column
+                                    field="id"
+                                    sortable
+                                    header="Sr.no"
+                                  ></Column>
+                                  <Column
+                                    field="userId"
+                                    sortable
+                                    header="UserId"
+                                  ></Column>
+                                  <Column
+                                    field="username"
+                                    sortable
+                                    header="Username"
+                                  ></Column>
+                                  <Column
+                                    field="email"
+                                    sortable
+                                    header="Email"
+                                  ></Column>
+                                  <Column
+                                    field="mainWallet"
+                                    sortable                                    
+                                    header="Main Wallet"
+                                  ></Column>
+                                  <Column                                    
+                                    field="investmentWallet"
+                                    sortable
+                                    header="Investment Wallet"
+                                  ></Column>                                  
+                                  <Column                                  
+                                  field="isInvested"
+                                  sortable
+                                  body={investedTemplate}
+                                  header="Investment Status"
+                                ></Column>
+                                <Column                                  
+                                  field="block"
+                                  sortable
+                                  body={blockedTemplate}
+                                  header="Blocked/Unblocked"
+                                ></Column>
+                                   <Column                                  
+                                  field="userId"
+                                  sortable
+                                  body={AcceptButtonTemplate}
+                                  header="Block"
+                                ></Column>
+                                <Column                                  
+                                  field="userId"
+                                  sortable
+                                  body={RejectButtonTemplate}
+                                  header="Unblock"
+                                ></Column>
+                                <Column                                  
+                                  field="datetime"
+                                  sortable                                                                  
+                                  header="Date/Time"
+                                ></Column>
+                                </DataTable>
+                              ) : (
+                                <DataTable
+                                  ref={dt}
+                                  paginator
+                                  rows={5}
+                                  rowsPerPageOptions={[5, 10, 25, 50]}
+                                  tableStyle={{ minWidth: "50rem" }}
+                                  paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                                  currentPageReportTemplate="{first} to {last} of {totalRecords}"
+                                  paginatorLeft={paginatorLeft}
+                                  paginatorRight={paginatorRight}
+                                  value={data}
+                                  header={header}
+                                  footer={footer}
+                                  
+                                ></DataTable>
+                              )}
+                            </>
+                          )}
 
                                                 <br /><br />
 
@@ -328,21 +462,6 @@ function AllUsers() {
 
                                         </div>
                                     </div>
-                                    <center>
-                                        <div>
-                                            <TablePagination
-                                                sx={{ alignItems: 'center', color: 'orange' }}
-                                                rowsPerPageOptions={[5, 10, 25, 50]}
-                                                component="div"
-                                                count={tableData.length}
-                                                rowsPerPage={rowsPerPage} // Use the state variable here
-                                                page={page}
-                                                onPageChange={handleChangePage}
-                                                onRowsPerPageChange={handleChangeRowsPerPage}
-                                            />
-
-                                        </div>
-                                    </center>
                                 </div>
 
                             </div>

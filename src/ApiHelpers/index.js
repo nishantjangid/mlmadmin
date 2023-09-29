@@ -327,6 +327,46 @@ export const withdrawHistory = async()=>{
     }) 
 }
 
+//approve deposite 
+export const approveWithdraw = async (obj) => {
+    return new Promise(async (resolve,reject)=>{
+        try{
+            let accesstoken = localStorage.getItem('authToken');
+            let result = await axios.post(`${BASEURL}/users/approveWithdraw`,obj ,{headers:{
+                'x-access-token': `${accesstoken}`,
+                'Content-Type':"application/json"
+            }});
+            if(result.status == 200 || result.status == 201){
+                resolve(result.data);
+            }else{
+                reject(result.data);
+            }
+        }catch(err){
+            reject(err);
+        }
+    })
+}
+
+//reject deposite 
+export const rejectWithdraw = async (obj) => {
+    return new Promise(async (resolve,reject)=>{
+        try{
+            let accesstoken = localStorage.getItem('authToken');
+            let result = await axios.post(`${BASEURL}/users/rejectWithdraw`,obj ,{headers:{
+                'x-access-token': `${accesstoken}`,
+                'Content-Type':"application/json"
+            }});
+            if(result.status == 200 || result.status == 201){
+                resolve(result.data);
+            }else{
+                reject(result.data);
+            }
+        }catch(err){
+            reject(err);
+        }
+    })
+}
+
 // get dashboard data
 export const dashboardData = async()=>{
     return new Promise(async (resolve,reject)=>{
@@ -453,5 +493,64 @@ export const settingDataFetch = async () => {
     })     
 }
 
+// GET ALL WITHDRAW REQUEST
+export const getAllWithdrawRequst = async () => {
+    return new Promise(async (resolve,reject)=>{
+        try{
+            let accesstoken = localStorage.getItem('authToken'); 
+            let result = await axios.get(`${BASEURL}/users/allWithdrawHistory`,{headers: {                
+                'Content-Type':'application/json',
+                'x-access-token': `${accesstoken}`
+              },});
 
+            if(result.status == 200 || result.status == 201){
+                resolve(result.data);
+            }else{
+                reject(result.data);
+            }
+        }catch(err){
+            reject(err);
+        }
+    })     
+}
+
+export const getAllUsersRecords = async () => {
+    return new Promise(async (resolve,reject)=>{
+        try{            
+            let result = await axios.get(`${BASEURL}/users/totalUsers`,{headers: {                
+                'Content-Type':'application/json',            
+              },});
+
+            if(result.status == 200 || result.status == 201){
+                resolve(result.data);
+            }else{
+                reject(result.data);
+            }
+        }catch(err){
+            reject(err);
+        }
+    })     
+}
+
+
+// setting api
+export const blockUser = async (obj) => {
+    return new Promise(async (resolve,reject)=>{
+        try{
+            let accesstoken = localStorage.getItem('authToken'); 
+            let result = await axios.post(`${BASEURL}/users/block`,obj,{headers: {
+                'x-access-token': `${accesstoken}`,
+                'Content-Type':'application/json'
+              },});
+
+            if(result.status == 200 || result.status == 201){
+                resolve(result.data);
+            }else{
+                reject(result.data);
+            }
+        }catch(err){
+            reject(err);
+        }
+    })     
+}
 

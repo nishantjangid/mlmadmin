@@ -50,8 +50,8 @@ const isAuthenticated = false;
           {/* <Route path='' element={isAuthenticated ? <Header /> : <Navigate to="/login" replace />} /> */}
           <Route path='' element={<ProtectedRoute >  <DashBoard  /> </ProtectedRoute >} />
           <Route path='dashboard' element={<ProtectedRoute > <DashBoard  /> </ProtectedRoute >} />
-          <Route path='AllUsers' element={<ProtectedRoute > <AllUsersNew /> </ProtectedRoute >} />
-          <Route path='AllActiveUSers' element={<ProtectedRoute > <AllActiveUSers /> </ProtectedRoute >} />
+          <Route path='AllMemberUsers' element={<ProtectedRoute > <AllUsersNew /> </ProtectedRoute >} />
+          <Route path='AllUsers' element={<ProtectedRoute > <AllActiveUSers /> </ProtectedRoute >} />
           <Route path='AllInActiveUsers' element={<ProtectedRoute > <AllInActiveUsers /> </ProtectedRoute >} />
           <Route path='AllDeposite' element={<ProtectedRoute > <AllDeposite /> </ProtectedRoute >} />
           <Route path='ApprovedDeposite' element={<ProtectedRoute > <ApprovedDeposite /> </ProtectedRoute >} />

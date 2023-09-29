@@ -36,7 +36,7 @@ export default function WithdrawReport() {
 
 
 
-            <Collapse in={open} timeout="auto" unmountOnExit>
+            {/* <Collapse in={open} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
                     <ListItemButton onClick={() => navigate('SendRequest')} sx={{ pl: 4 }}>
                         <ListItemIcon>
@@ -45,14 +45,14 @@ export default function WithdrawReport() {
                         <ListItemText sx={{ fontSize: '10px' }} primary="Send Request" />
                     </ListItemButton>
                 </List>
-            </Collapse>
+            </Collapse> */}
             <Collapse in={open} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
                     <ListItemButton onClick={() => navigate('WalletHistory')} sx={{ pl: 4 }}>
                         <ListItemIcon>
                             <PeopleIcon sx={{ color: 'white' }} />
                         </ListItemIcon>
-                        <ListItemText sx={{ fontSize: '10px' }} primary=" Wallet History" />
+                        <ListItemText sx={{ fontSize: '10px' }} primary=" Withdraw Requests" />
                     </ListItemButton>
                 </List>
             </Collapse>

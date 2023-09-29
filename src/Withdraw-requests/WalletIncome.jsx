@@ -1,21 +1,23 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import RotateLeftIcon from "@mui/icons-material/RotateLeft";
 
 import { TablePagination } from "@mui/material";
 import { compareDesc } from "date-fns";
 import CircularProgress from "@mui/material/CircularProgress";
-import { withdrawHistory } from "../ApiHelpers";
+import { approveWithdraw, getAllWithdrawRequst, rejectWithdraw, withdrawHistory } from "../ApiHelpers";
 import { useToasts } from "react-toast-notifications";
 import { Button } from "primereact/button";
 import { Tooltip } from "primereact/tooltip";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
+import { AuthContext } from "../Context/AuthContext";
 
 function WalletHistory() {
   const { addToast } = useToasts();
+  const {getUserDetails} = useContext(AuthContext);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadings, setLoadings] = useState(true);
   const [data, setData] = useState([]);
@@ -86,7 +88,7 @@ function WalletHistory() {
     try {
       setLoadings(true);
       setLoading(true);
-      let result = await withdrawHistory();
+      let result = await getAllWithdrawRequst();
       setData(result.result);
       setLoading(false);
       setLoadings(false);
@@ -148,19 +150,75 @@ function WalletHistory() {
   const footer = `In total there are ${data ? data.length : 0} History.`;
   const paginatorLeft = <Button type="button" icon="pi pi-refresh" text />;
   const paginatorRight = <Button type="button" icon="pi pi-download" text />;
+  const isSelectable = (data) => {
+    
+    return Number(data.type) == 0;
+   };
+ 
+   const isRowSelectable = (event) => (event.data ? isSelectable(event.data) : true);
+ 
+   const rowClassName = (data) => (isSelectable(data) ? '' : 'p-disabled');
+ 
+   const AcceptButtonTemplate = (row) => <Button onClick={() => handleApprove(row._id)} style={{background:"green",color:'#fff',border:'none'}}>Approve</Button>
+   const RejectButtonTemplate = (row) => <Button onClick={() => handleReject(row._id)} style={{background:"red",color:'#fff',border:'none'}}>Reject</Button>
+ 
   const statusTemplate = (row) => (
     <span>
-      {row?.type == "Pending" && (
-        <p style={{ color: "orange", fontWeight: "bold" }}>Pending</p>
+      {row?.type == 0 && (
+        <p style={{ color: "#af3405", fontWeight: "bold" }}>Pending</p>
       )}
-      {row?.type == "Approved" && (
+      {row?.type == 1 && (
         <p style={{ color: "green", fontWeight: "bold" }}>Approved</p>
       )}
-      {row?.tpe == "Rejected" && (
+      {row?.tpe == 2 && (
         <p style={{ color: "red", fontWeight: "bold" }}>Rejected</p>
       )}
     </span>
   );
+
+  const handleApprove = async (withdrawId) => {
+    try{
+      setLoadings(true);
+      let result = await approveWithdraw({withdrawId});
+      setLoadings(false);
+      addToast(result.message, {appearance: "success",autoDismiss: true});
+      getAllRequests();
+      getUserDetails();
+    }catch(err){      
+      setLoadings(false);
+      if(err.code == "ERR_NETWORK"){
+          addToast(err.message, {appearance: "error",autoDismiss: true});
+      }   
+      else if(err.code == "ERR_BAD_REQUEST"){
+          addToast(err.response.data.error, {appearance: "error",autoDismiss: true});
+      }
+      else if(err.response.status){
+          addToast(err.response.data, {appearance: "error",autoDismiss: true});
+      }      
+    }
+  }
+
+  const handleReject = async (withdrawId) => {
+    try{
+      setLoadings(true);
+      let result = await rejectWithdraw({withdrawId});
+      setLoadings(false);
+      addToast(result.message, {appearance: "success",autoDismiss: true});
+      getAllRequests();
+      getUserDetails();
+    }catch(err){      
+      setLoadings(false);
+      if(err.code == "ERR_NETWORK"){
+          addToast(err.message, {appearance: "error",autoDismiss: true});
+      }   
+      else if(err.code == "ERR_BAD_REQUEST"){
+          addToast(err.response.data.error, {appearance: "error",autoDismiss: true});
+      }
+      else if(err.response.status){
+          addToast(err.response.data, {appearance: "error",autoDismiss: true});
+      }      
+    }
+  }
 
   useEffect(() => {
     setTimeout(() => {
@@ -330,6 +388,8 @@ function WalletHistory() {
                               />
                               {data.length > 0 ? (
                                 <DataTable
+                                selectionMode="single" selection={selectedProduct} onSelectionChange={(e) => setSelectedProduct(e.value)} dataKey="id"
+                              isDataSelectable={isRowSelectable} rowClassName={rowClassName}
                                   ref={dt}
                                   paginator
                                   rows={5}
@@ -375,6 +435,18 @@ function WalletHistory() {
                                     sortable
                                     header="Datetime"
                                   ></Column>
+                                   <Column                                  
+                                  field="_id"
+                                  sortable
+                                  body={AcceptButtonTemplate}
+                                  header="Approve"
+                                ></Column>
+                                <Column                                  
+                                  field="_id"
+                                  sortable
+                                  body={RejectButtonTemplate}
+                                  header="Rejected"
+                                ></Column>
                                 </DataTable>
                               ) : (
                                 <DataTable

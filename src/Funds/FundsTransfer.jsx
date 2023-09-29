@@ -167,11 +167,13 @@ function FundsTransfer() {
             setWallet('');
             setAmount('');
         }catch(err){              
-            if(err.code == "ERR_NETWORK" || err.code == "ERR_BAD_REQUEST"){
+            if(err.code == "ERR_NETWORK" ){
                 addToast(err.message, {appearance: "error",autoDismiss: true});
-            }   
-            else if(err.response.status){
+            }else if(err.code == "ERR_BAD_REQUEST"){
                 addToast(err.response.data.error, {appearance: "error",autoDismiss: true});
+            }
+            else{
+                addToast(err.response.data, {appearance: "error",autoDismiss: true});
             }
         }  
     }
